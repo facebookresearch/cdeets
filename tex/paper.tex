@@ -8,22 +8,9 @@
 \documentclass[12pt]{article}
 \usepackage{amsmath,amsthm,amssymb}
 \usepackage{graphicx}
-%\usepackage{enumerate}
 \usepackage[authoryear,round]{natbib}
-\usepackage{url} % not crucial - just used below for the URL 
-\usepackage{setspace}
-
-%\pdfminorversion=4
-% NOTE: To produce blinded version, replace "0" with "1" below.
-\newcommand{\blind}{0}
-
-% DON'T change margins - should be 1 inch all around.
-\addtolength{\oddsidemargin}{-.5in}%
-\addtolength{\evensidemargin}{-.5in}%
-\addtolength{\textwidth}{1in}%
-\addtolength{\textheight}{1.3in}%
-\addtolength{\topmargin}{-.8in}%
-
+\usepackage[breaklinks,hidelinks]{hyperref}
+\usepackage[margin=1in]{geometry}
 
 \newtheorem{theorem}{Theorem}[]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -38,37 +25,19 @@
 \def\epsilon{\varepsilon}
 
 
+\title{Calibration of P-values for calibration and for deviation
+       of a subpopulation from the full population}
+\author{Mark Tygert\\
+        Fundamental Artificial Intelligence Research, Meta Platforms, Inc.\\
+        786 Coleman Ave.\ Apt.\ L, Menlo Park, CA 94025-2440\\
+        \url{http://tygert.com}\\
+        {\tt mark@tygert.com}}
+
+
 \begin{document}
 
-%\bibliographystyle{natbib}
+\maketitle
 
-\def\spacingset#1{\renewcommand{\baselinestretch}%
-{#1}\small\normalsize} \spacingset{1}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\if0\blind
-{
-  \title{\bf Calibration of P-values for calibration and for deviation
-         of a subpopulation from the full population}
-  \author{Mark Tygert\\
-          Fundamental Artificial Intelligence Research, Meta Platforms, Inc.}
-  \maketitle
-} \fi
-
-\if1\blind
-{
-  \bigskip
-  \bigskip
-  \bigskip
-  \begin{center}
-    {\LARGE\bf Title}
-\end{center}
-  \medskip
-} \fi
-
-\bigskip
 \begin{abstract}
 The author's recent research papers,
 ``Cumulative deviation of a subpopulation from the full population'' and
@@ -92,14 +61,8 @@ and illustrates and validates the methods with open-source software
 and numerical examples.
 \end{abstract}
 
-\noindent%
-{\it Keywords:} Brownian motion, significance, test, hypothesis,
-                numerical methods, graphical methods
-\vfill
-
-\newpage
-\setstretch{1.5}
-%%%%\spacingset{1.5} % DON'T change the spacing!
+\noindent {\it Keywords:} Brownian motion, significance, test, hypothesis,
+                          numerical methods, graph
 
 
 
@@ -1131,7 +1094,6 @@ The plot on the right uses a logarithmic scale for the vertical axis,
 unlike the plot on the left. The vertical dotted line indicates
 the value of $x$ corresponding to the mean of the distribution
 for which $F$ is the cumulative distribution function.}
-\vspace{.5in}
 \label{kuiper_plot}
 \end{figure}
 
@@ -1168,7 +1130,6 @@ for the standard normal distribution;
 $\Phi(x) = \int_{-\infty}^x \exp(-y^2/2) \, dy \, / \, \sqrt{2\pi}$.
 The plot on the right uses a logarithmic scale for the vertical axis,
 unlike the plot on the left.}
-\vspace{-.0625in}
 \label{gaussian_plot}
 \end{figure}
 
@@ -1205,7 +1166,6 @@ with the expected response $r(s) = s$ to assess calibration.
 Each empirical cumulative distribution function plotted arises
 from 100,000 data sets generated independently
 while assuming the null hypothesis.}
-\vspace{-.0625in}
 \label{kuc}
 \end{figure}
 
@@ -1242,7 +1202,6 @@ with the expected response $r(s) = s$ to assess calibration.
 Each empirical cumulative distribution function plotted arises
 from 100,000 data sets generated independently
 while assuming the null hypothesis.}
-\vspace{-.0625in}
 \label{ksc}
 \end{figure}
 
@@ -1377,28 +1336,6 @@ from the full population's is the slope.}
 
 
 
-\clearpage
-
-
-
-\bigskip
-\begin{center}
-{\large\bf SUPPLEMENTARY MATERIAL}
-\end{center}
-
-\begin{description}
-
-\item[Python and LaTeX sources:] The Python-package CDEETS contains code
-implementing and testing the methods described in the present paper.
-The package includes unit tests together with scripts that automatically
-reproduce all results and figures reported above. The package also contains
-all data sets used above as examples, as well as the LaTeX and BibTeX sources
-required for reproducing the paper.
-
-\end{description}
-
-
-
 \section*{Acknowledgements}
 
 We would like to thank Kamalika Chaudhuri, Imanol Arrieta Ibarra,
@@ -1406,7 +1343,12 @@ Michael Rabbat, Jonathan Tannen, and Susan Zhang.
 
 
 
+\clearpage
+
+
+
 \bibliographystyle{jasa3}
 
 \bibliography{paper}
+
 \end{document}
