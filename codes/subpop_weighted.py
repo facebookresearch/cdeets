@@ -28,8 +28,8 @@ the root directory of this source tree.
 import math
 import os
 import subprocess
-import random
 import numpy as np
+from numpy.random import default_rng
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -85,6 +85,9 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
     float
         quarter of the full height of the isosceles triangle
         at the origin in the plot
+    float
+        ordinate (vertical coordinate) at the greatest abscissa (horizontal
+        coordinate)
     """
 
     def histcounts(nbins, a):
@@ -205,7 +208,9 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
     lenxf = int(len(x) * fraction)
     sl = ['{:.2f}'.format(a) for a in
           np.insert(ss, 0, [0])[:lenxf:(lenxf // majorticks)].tolist()]
-    plt.xticks(x[:lenxf:(lenxf // majorticks)], sl)
+    plt.xticks(
+        x[:lenxf:(lenxf // majorticks)], sl,
+        bbox=dict(boxstyle='Round', fc='w'))
     if len(rtsub) >= 300 and minorticks >= 50:
         # Indicate the distribution of s via unlabeled minor ticks.
         plt.minorticks_on()
@@ -214,11 +219,12 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
         ax.set_xticks(x[np.cumsum(histcounts(minorticks,
                       ss[:int((len(x) - 1) * fraction)]))], minor=True)
     # Label the axes.
-    plt.xlabel('$S_k$')
+    plt.xlabel('$S_k$', labelpad=6)
     plt.ylabel('$B_k$')
     ax2 = plt.twiny()
     plt.xlabel(
-        '$k/n$ (together with minor ticks at equispaced values of $A_k$)')
+        '$k/n$ (together with minor ticks at equispaced values of $A_k$)',
+        labelpad=8)
     ax2.tick_params(which='minor', axis='x', top=True, direction='in', pad=-17)
     ax2.set_xticks(np.arange(1 / majorticks, 1, 1 / majorticks), minor=True)
     ks = ['{:.2f}'.format(a) for a in
@@ -233,7 +239,7 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
             alabs.append(x[int(a)])
         else:
             alabs.append(x[int(a)] * (1 + 1e-3))
-    plt.xticks(alabs, ks)
+    plt.xticks(alabs, ks, bbox=dict(boxstyle='Round', fc='w'))
     ax2.xaxis.set_minor_formatter(FixedFormatter(
         [r'$A_k\!=\!{:.2f}$'.format(1 / majorticks)]
         + [r'${:.2f}$'.format(k / majorticks) for k in range(2, majorticks)]))
@@ -248,7 +254,8 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
     fft = (f - ft)[:int(len(f) * fraction)]
     kuiper = np.max(fft) - np.min(fft)
     kolmogorov_smirnov = np.max(np.abs(fft))
-    return kuiper, kolmogorov_smirnov, lenscale
+    maxint = int(len(f) * fraction) - 1
+    return kuiper, kolmogorov_smirnov, lenscale, f[maxint] - ft[maxint]
 
 
 def equiscores(r, s, inds, nbins, filename='equiscore.pdf', weights=None,
@@ -342,7 +349,7 @@ def equiscores(r, s, inds, nbins, filename='equiscore.pdf', weights=None,
     plt.close()
 
 
-def equierrs(r, s, inds, nbins, filename='equibins.pdf', weights=None,
+def equierrs(r, s, inds, nbins, rng, filename='equibins.pdf', weights=None,
              top=None, left=None, right=None):
     """
     Reliability diagram with similar ratio L2-norm / L1-norm of weights by bin
@@ -364,6 +371,8 @@ def equierrs(r, s, inds, nbins, filename='equibins.pdf', weights=None,
         (must be unique and in strictly increasing order)
     nbins : int
         rough number of bins to construct
+    rng : Generator
+        fully initialized random number generator from NumPy
     filename : string, optional
         name of the file in which to save the plot
     weights : array_like, optional
@@ -405,7 +414,7 @@ def equierrs(r, s, inds, nbins, filename='equibins.pdf', weights=None,
         # of the L2 norm of w in the bin to the L1 norm of w in the bin,
         # returning the indices defining the bins in the list inbin.
         proxy = len(w) // nbins
-        v = w[np.sort(np.random.permutation(len(w))[:proxy])]
+        v = w[np.sort(rng.permutation(len(w))[:proxy])]
         # t is a heuristic threshold.
         t = np.square(v).sum() / v.sum()**2
         inbin = []
@@ -558,7 +567,8 @@ if __name__ == '__main__':
                     s = np.concatenate([s] * 4)
                     if dither:
                         ss = s.shape
-                        s *= np.ones(ss) + np.random.normal(size=ss) * 1e-8
+                        rng = default_rng(seed=987654321)
+                        s *= np.ones(ss) + rng.normal(size=ss) * 1e-8
                     # The scores must be in non-decreasing order.
                     s = np.sort(s)
 
@@ -584,8 +594,8 @@ if __name__ == '__main__':
 
                 if iex == 1:
                     # Define the indices of the subset for the subpopulation.
-                    np.random.seed(987654321)
-                    inds = np.sort(np.random.permutation((m))[:n])
+                    rng = default_rng(seed=987654321)
+                    inds = np.sort(rng.permutation((m))[:n])
 
                     # Construct scores.
                     s = np.arange(0, 1, 2 / m) + 1 / m
@@ -593,7 +603,7 @@ if __name__ == '__main__':
                     s = np.concatenate((s, s))
                     if dither:
                         ss = s.shape
-                        s *= np.ones(ss) + np.random.normal(size=ss) * 1e-8
+                        s *= np.ones(ss) + rng.normal(size=ss) * 1e-8
                     # The scores must be in non-decreasing order.
                     s = np.sort(s)
 
@@ -615,7 +625,7 @@ if __name__ == '__main__':
 
                 if iex == 2:
                     # Define the indices of the subset for the subpopulation.
-                    np.random.seed(987654321)
+                    rng = default_rng(seed=987654321)
                     inds = np.arange(0, m ** (3 / 4), 1)
                     inds = np.unique(np.round(np.power(inds, 4 / 3)))
                     inds = inds.astype(int)
@@ -626,7 +636,7 @@ if __name__ == '__main__':
                     s = np.concatenate([s] * 10)
                     if dither:
                         ss = s.shape
-                        s *= np.ones(ss) + np.random.normal(size=ss) * 1e-8
+                        s *= np.ones(ss) + rng.normal(size=ss) * 1e-8
                     # The scores must be in non-decreasing order.
                     s = np.sort(s)
 
@@ -647,15 +657,15 @@ if __name__ == '__main__':
 
                 if iex == 3:
                     # Define the indices of the subset for the subpopulation.
-                    np.random.seed(987654321)
-                    inds = np.sort(np.random.permutation((m))[:n])
+                    rng = default_rng(seed=987654321)
+                    inds = np.sort(rng.permutation((m))[:n])
 
                     # Construct scores.
                     s = np.arange(0, 1, 4 / m) + 2 / m
                     s = np.concatenate([s] * 4)
                     if dither:
                         ss = s.shape
-                        s *= np.ones(ss) + np.random.normal(size=ss) * 1e-8
+                        s *= np.ones(ss) + rng.normal(size=ss) * 1e-8
                     # The scores must be in non-decreasing order.
                     s = np.sort(s)
 
@@ -713,13 +723,13 @@ if __name__ == '__main__':
                 # avoiding numpy's random number generators
                 # that are based on random bits --
                 # they yield strange results for many seeds.
-                random.seed(987654321)
-                uniform = np.asarray([random.random() for _ in range(m)])
+                rng = default_rng(seed=987654321)
+                uniform = np.asarray([rng.random() for _ in range(m)])
                 r = (uniform <= exact).astype(float)
 
                 # Generate five plots and a text file reporting metrics.
                 filename = dir + 'cumulative.pdf'
-                kuiper, kolmogorov_smirnov, lenscale = cumulative(
+                kuiper, kolmogorov_smirnov, lenscale, ordinate = cumulative(
                     r, s, inds, majorticks, minorticks, True, filename,
                     weights=weights)
                 filename = dir + 'metrics.txt'
@@ -738,15 +748,18 @@ if __name__ == '__main__':
                     f.write(f'{(kuiper / lenscale):.4}\n')
                     f.write('Kolmogorov-Smirnov / lenscale:\n')
                     f.write(f'{(kolmogorov_smirnov / lenscale):.4}\n')
+                    f.write('ordinate:\n')
+                    f.write(f'{ordinate:.4}\n')
                 filename = dir + 'cumulative_exact.pdf'
-                _, _, _ = cumulative(
+                _, _, _, _ = cumulative(
                     exact, s, inds, majorticks, minorticks, True, filename,
                     title='exact expectations', weights=weights)
                 filename = dir + 'equiscores.pdf'
                 equiscores(r, s, inds, nbins, filename, weights, top=1, left=0,
                            right=1)
                 filename = dir + 'equierrs.pdf'
-                equierrs(r, s, inds, nbins + 3, filename, weights, top=1,
+                rng = default_rng(seed=987654321)
+                equierrs(r, s, inds, nbins + 3, rng, filename, weights, top=1,
                          left=0, right=1)
                 filepdf = dir + 'exact.pdf'
                 filejpg = dir + 'exact.jpg'
